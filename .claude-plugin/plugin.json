@@ -1,0 +1,9 @@
+{
+  "name": "email-batcher",
+  "version": "0.1.0",
+  "description": "Outbound email batching: hold messages to a recipient in a queue and release one consolidated email on a threshold or schedule, with an override for urgent sends.",
+  "author": {"name": "Daniel Rosehill", "url": "https://github.com/danielrosehill"},
+  "repository": "https://github.com/danielrosehill/EmailBatcher",
+  "license": "MIT",
+  "keywords": ["email", "batching", "outbound-queue", "digest", "middleware", "client-updates"]
+}
