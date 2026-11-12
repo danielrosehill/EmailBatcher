@@ -1,0 +1,13 @@
+[Unit]
+Description=EmailBatcher release tick
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__DEPLOYMENT__
+EnvironmentFile=__DEPLOYMENT__/.env
+ExecStart=/usr/bin/python3 __DEPLOYMENT__/bin/emailbatcher.py tick --deployment __DEPLOYMENT__
+# exit 2 = some recipients failed (others sent); keep it visible but not fatal
+SuccessExitStatus=2

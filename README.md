@@ -1,17 +1,26 @@
 # EmailBatcher
 
-A Claude Code plugin for outbound email batching. Instead of sending each update to a recipient as it happens, messages are held in an outbound queue and released as one consolidated email when a threshold is reached (count, age, or schedule). An override rule lets a genuinely urgent message go out immediately.
+A Claude Code plugin that holds outbound email updates in a queue and sends one consolidated email per recipient on a schedule (daily, weekly, or at a threshold). If something can't wait, an urgent override sends it straight away.
 
-Status: **design stage.** No skills yet. See [docs/design.md](docs/design.md).
+It's built for consultants and small teams keeping a client informed. Several people queue updates through the day, and a server sends the client one digest at the agreed time from an agreed address, so the client isn't buried in small updates.
 
-## The problem
+## How it works
 
-Someone who works with clients (or any frequent correspondent) produces a stream of small updates. Sending each one as its own email floods the recipient's inbox; holding them back by hand means remembering to send. EmailBatcher sits between the sender and the recipient and does the holding and consolidating.
+- The **deployment** is a private git repo of markdown and JSON files: team profiles, recipients and their cadence, and the queue. Each queued update is its own file, so several people can push at once.
+- A **server** runs `tick` every 5 minutes (systemd timer or cron). It sends urgent items, releases every batch that's due, and pushes the result back. Workstations don't need to be on.
+- One stdlib Python CLI does all the work (`scripts/emailbatcher.py`). It needs no dependencies and outputs JSON.
 
-## Prior art (same author)
+Full design: [docs/design.md](docs/design.md).
 
-- [Client-Update-Pipeline-Notes](https://github.com/danielrosehill/Client-Update-Pipeline-Notes): the original sketch (2025-11-18). Per-client alias address, Google Group as the catcher, an agent summarises the queue into one email per period.
-- [Agent-Briefing-Gateway](https://github.com/danielrosehill/Agent-Briefing-Gateway): the same staging-and-batching mechanism pointed inbound (sub-agents to a human), with a budgeted override channel (2026-07-30).
+## Skills
+
+- `setup`: create a deployment, or join one as a team member.
+- `setup-server`: install the release runner on a server.
+- `manage-team`: add team member profiles.
+- `manage-recipients`: client addresses, cadence, send time, thresholds, urgent policy.
+- `queue-update`: queue an update for the next batch (or send it urgently).
+- `batch-status`: what's pending, and when it goes out.
+- `release-batch`: preview, send now, or withdraw an item.
 
 ## Installation
 
@@ -19,7 +28,24 @@ Someone who works with clients (or any frequent correspondent) produces a stream
 claude plugins install email-batcher@danielrosehill
 ```
 
-(Not yet registered in the marketplace.)
+## CLI quick reference
+
+```bash
+EB="python3 scripts/emailbatcher.py"
+$EB init ~/repos/acme-email-batches --name "Acme" --sender-email updates@example.com --timezone Europe/London --transport resend
+$EB add-user alice --deployment ~/repos/acme-email-batches --name "Alice"
+$EB add-recipient acme --deployment ~/repos/acme-email-batches --to ceo@acme.test --cadence daily --at 17:00 --days mon,tue,wed,thu,fri
+$EB configure-client --deployment ~/repos/acme-email-batches --user alice
+$EB queue acme --subject "DNS cutover done" --topic Website --body "Finished at 14:00."
+$EB queue acme --subject "Site down" --body "Investigating." --urgent
+$EB status -v
+$EB preview acme
+$EB tick            # what the server runs
+```
+
+## Prior art
+
+This plugin builds on [Client-Update-Pipeline-Notes](https://github.com/danielrosehill/Client-Update-Pipeline-Notes) and [Agent-Briefing-Gateway](https://github.com/danielrosehill/Agent-Briefing-Gateway).
 
 ## License
 

@@ -1,0 +1,2 @@
+# EmailBatcher release tick every 5 minutes (replace __DEPLOYMENT__)
+*/5 * * * * cd __DEPLOYMENT__ && set -a && . ./.env && set +a && /usr/bin/python3 bin/emailbatcher.py tick --deployment __DEPLOYMENT__ >> __DEPLOYMENT__/../email-batcher.log 2>&1
